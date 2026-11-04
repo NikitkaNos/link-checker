@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
         Url::parse(&cli.url).with_context(|| format!("Некорректный UTL : {}", cli.url))?;
     //3. Cheks scheme is http | https
     if !matches!(start_url.scheme(), "http" |"https"){
-        anyhow::bail!("Поддерживается только http/https, получено : {}" , start_url.scheme());
+        anyhow::bail!("Поддерживается только http/https, получено: {}" , start_url.scheme());
     }
 
     //4. Assembling the configuration
