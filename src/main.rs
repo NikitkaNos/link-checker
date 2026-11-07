@@ -4,6 +4,7 @@ use url::Url;
 
 use crate::cli::Cli;
 
+mod fetcher;
 mod cli;
 mod config;
 
