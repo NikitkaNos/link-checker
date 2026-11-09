@@ -46,11 +46,12 @@ pub async fn fetch(client: &Client, url: &Url) -> anyhow::Result<FetchResult> {
         .get(url.as_str())
         .send()
         .await
-        .map_err(|e| anyhow::anyhow!("Сетевая ошибка длф {url} : {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Сетевая ошибка для {url} : {e}"))?;
     // 2. Запоминаем статус и финальный URL (после редиректов).
     let status = response.status();
     let final_url = response.url().clone();
-
+    // 3. Читаем тело только если это HTML и статус 2xx/3xx.
+    // Для 4xx/5xx тело обычно не нужно — экономим память и трафик.
     let html = if status.is_success() || status.is_redirection() {
         let content_type = response
             .headers()
@@ -59,9 +60,11 @@ pub async fn fetch(client: &Client, url: &Url) -> anyhow::Result<FetchResult> {
             .unwrap_or("xXx");
 
         if content_type.contains("text/html") {
+            // .text() читает тело как строку, учитывая charset из заголовков.
             match response.text().await {
                 Ok(body) => Some(body),
                 Err(e) => {
+                    // Тело не прочиталось — не критично, вернём None,но залогируем.
                     tracing::warn!("не удалось прочитать тело {url}: {e}");
                     None
                 }
